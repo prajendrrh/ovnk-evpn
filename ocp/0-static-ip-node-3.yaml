@@ -1,0 +1,21 @@
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: node-3-fixed-ip
+spec:
+  nodeSelector: 
+    node: "3"
+  desiredState:
+    interfaces:
+    - name: enp0s20f0u4  # Explicitly disable IP on the physical NIC
+      type: ethernet
+      state: up
+      ipv4:
+        dhcp: false
+        address:
+          - ip: 172.19.0.102
+            prefix-length: 24
+        enabled: true 
+      ipv6:
+        enabled: false
+        

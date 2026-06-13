@@ -1,0 +1,8 @@
+apiVersion: k8s.ovn.org/v1
+kind: VTEP
+metadata:
+  name: evpn-vtep
+spec:
+  cidrs: 
+    - 172.19.0.0/24 
+  mode: Unmanaged
