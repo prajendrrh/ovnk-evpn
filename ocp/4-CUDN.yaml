@@ -13,8 +13,9 @@ spec:
       role: Primary
       subnets: 
         - 22.100.0.0/16
-      defaultGatewayIPs: 
-        - 22.100.100.1
+      ipam:
+        mode: Enabled
+        lifecycle: Persistent
     topology: Layer2
     transport: EVPN
     evpn:
