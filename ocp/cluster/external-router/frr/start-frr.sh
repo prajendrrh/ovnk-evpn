@@ -26,10 +26,12 @@ show_diagnostics() {
 }
 
 prepare_config() {
+  "${SCRIPT_DIR}/render-config.sh"
+
   mkdir -p "${FRR_DIR}"
-  cp -f "${SCRIPT_DIR}/daemons" "${SCRIPT_DIR}/vtysh.conf" "${FRR_DIR}/"
-  envsubst '${BGP_ASN} ${BASTION_IP} ${WORKER1_IP} ${WORKER2_IP}' \
-    < "${SCRIPT_DIR}/frr.conf.template" > "${FRR_DIR}/frr.conf"
+  cp -f "${SCRIPT_DIR}/frr.conf" "${SCRIPT_DIR}/daemons" "${SCRIPT_DIR}/vtysh.conf" "${FRR_DIR}/"
+
+  echo "Runtime config copied to ${FRR_DIR}/frr.conf"
 
   local frr_uid frr_gid vty_gid
   frr_uid=$(sudo podman run --rm --entrypoint id "${FRR_IMAGE}" -u frr)

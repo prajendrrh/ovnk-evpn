@@ -1,4 +1,5 @@
-# IPs: see ../vars.env (UNDERLAY_CIDR)
+# IPs: edit ../vars.env then run external-router/frr/render-config.sh
+# Generated values must match this file and ../2-frr.yaml
 apiVersion: k8s.ovn.org/v1
 kind: VTEP
 metadata:
