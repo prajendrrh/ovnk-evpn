@@ -61,11 +61,15 @@ parse_type2_macip() {
     [[ -z "${mac}" || -z "${ip}" || "${ip}" == "${CUDN_GATEWAY%%/*}" ]] && continue
     nh=$(grep -A1 "${line}" <<< "${routes}" | tail -1)
     vtep=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' <<< "${nh}" | head -1)
-    [[ -n "${vtep}" ]] && echo "${ip} ${mac} ${vtep}"
+    [[ -z "${vtep}" || "${vtep}" == "${BASTION_IP}" ]] && continue
+    echo "${ip} ${mac} ${vtep}"
   done <<< "${routes}"
 }
 
 # VTEP flood entries
+echo "--- Pre-clean extern_learn on ${BRIDGE_DEV} ---"
+cleanup_extern_learn_fdb
+
 for vtep in "${WORKER1_IP}" "${WORKER2_IP}"; do
   echo "  VTEP FDB * -> ${vtep}"
   sudo bridge fdb replace 00:00:00:00:00:00 dev "${VXLAN_DEV}" dst "${vtep}" self static 2>/dev/null || \

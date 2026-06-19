@@ -40,7 +40,6 @@ frr_load_bgp_config() {
 configure terminal
 frr defaults traditional
 log stdout debugging
-log file /var/log/frr/frr.log debugging
 interface ${VXLAN_DEV}
  evpn vni ${VNI}
 exit
@@ -65,10 +64,8 @@ router bgp ${BGP_ASN}
   neighbor ${WORKER2_IP} activate
   advertise-all-vni
   advertise-svi-ip
-  advertise-gateway-macip
  exit-address-family
 end
-write memory
 EOF
 }
 

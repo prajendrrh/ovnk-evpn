@@ -38,7 +38,6 @@ router bgp ${BGP_ASN}
   neighbor ${WORKER2_IP} activate
   advertise-all-vni
   advertise-svi-ip
-  advertise-gateway-macip
  exit-address-family
 !
 end
