@@ -4,11 +4,10 @@ set -euo pipefail
 CONTAINER_NAME=frr
 FRR_DIR="${FRR_DIR:-${HOME}/frr}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLUSTER_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+# shellcheck source=frr-lib.sh
+source "${SCRIPT_DIR}/frr-lib.sh"
 
-# shellcheck source=../../vars.env
-source "${CLUSTER_DIR}/vars.env"
-FRR_IMAGE="${FRR_IMAGE:-quay.io/frrouting/frr:10.2.1}"
+frr_load_vars
 
 show_diagnostics() {
   echo
@@ -20,9 +19,6 @@ show_diagnostics() {
   echo
   echo "=== /var/log/frr ==="
   sudo podman exec "${CONTAINER_NAME}" sh -c 'ls -la /var/log/frr 2>/dev/null; tail -30 /var/log/frr/bgpd.log 2>/dev/null; tail -30 /var/log/frr/frr.log 2>/dev/null' || true
-  echo
-  echo "=== bgpd config check ==="
-  sudo podman exec "${CONTAINER_NAME}" sh -c '/usr/lib/frr/bgpd --dryrun -f /etc/frr/frr.conf 2>&1' || true
 }
 
 prepare_config() {
@@ -48,28 +44,12 @@ wait_for_daemons() {
   local i
   for i in $(seq 1 30); do
     if sudo podman exec "${CONTAINER_NAME}" vtysh -c "show version" >/dev/null 2>&1 &&
-       ! sudo podman exec "${CONTAINER_NAME}" vtysh -c "show ip bgp summary" 2>&1 | grep -q "bgpd is not running"; then
+       ! sudo podman exec "${CONTAINER_NAME}" vtysh -c "show bgp summary" 2>&1 | grep -q "bgpd is not running"; then
       return 0
     fi
     sleep 1
   done
   return 1
-}
-
-load_integrated_config() {
-  echo "Loading /etc/frr/frr.conf into running daemons..."
-  sudo podman exec "${CONTAINER_NAME}" vtysh -b -f /etc/frr/frr.conf
-}
-
-verify_bgp_configured() {
-  local out
-  out=$(sudo podman exec "${CONTAINER_NAME}" vtysh -c "show ip bgp summary" 2>&1)
-  if echo "${out}" | grep -qE "bgpd is not running|BGP instance not found"; then
-    echo "${out}"
-    return 1
-  fi
-  echo "${out}"
-  return 0
 }
 
 prepare_config
@@ -103,14 +83,12 @@ if ! wait_for_daemons; then
   exit 1
 fi
 
-if ! load_integrated_config; then
-  echo "Failed to load integrated BGP configuration."
-  show_diagnostics
-  exit 1
-fi
+frr_load_bgp_config
 
-if ! verify_bgp_configured; then
+if ! frr_bgp_loaded; then
   echo "BGP configuration was not applied."
   show_diagnostics
   exit 1
 fi
+
+sudo podman exec "${CONTAINER_NAME}" vtysh -c "show bgp summary"
