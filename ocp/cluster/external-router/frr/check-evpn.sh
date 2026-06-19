@@ -22,3 +22,7 @@ sudo podman exec frr vtysh -c "show bgp l2vpn evpn route type 2"
 echo
 echo "=== EVPN MAC table (VNI ${VNI}) ==="
 sudo podman exec frr vtysh -c "show evpn mac vni ${VNI}"
+
+echo
+echo "=== Kernel dataplane ==="
+sudo "${SCRIPT_DIR}/sync-dataplane.sh"

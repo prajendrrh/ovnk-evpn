@@ -18,8 +18,12 @@ echo "=== 1/2 VXLAN bridge ==="
 sudo "${SCRIPT_DIR}/vxlan.sh"
 
 echo
-echo "=== 2/2 FRR container ==="
+echo "=== 2/3 FRR container ==="
 "${SCRIPT_DIR}/start-frr.sh"
+
+echo
+echo "=== 3/3 EVPN dataplane (FDB/ARP) ==="
+sudo "${SCRIPT_DIR}/sync-dataplane.sh"
 
 echo
 echo "Verify EVPN:"

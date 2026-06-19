@@ -11,6 +11,9 @@ debug bgp nht detail
 debug zebra vxlan
 debug zebra kernel
 !
+interface br100
+ ip address ${CUDN_GATEWAY}
+!
 router bgp ${BGP_ASN}
  bgp router-id ${BASTION_IP}
  no bgp default ipv4-unicast

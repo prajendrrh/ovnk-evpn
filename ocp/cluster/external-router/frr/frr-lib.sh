@@ -41,6 +41,10 @@ configure terminal
 frr defaults traditional
 log stdout debugging
 log file /var/log/frr/frr.log debugging
+interface ${BRIDGE_DEV}
+ ip address ${CUDN_GATEWAY}
+exit
+!
 router bgp ${BGP_ASN}
  bgp router-id ${BASTION_IP}
  no bgp default ipv4-unicast
