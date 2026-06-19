@@ -42,15 +42,32 @@ prepare_config() {
   sudo chmod 660 "${FRR_DIR}/vtysh.conf"
 }
 
-wait_for_bgpd() {
+wait_for_daemons() {
   local i
   for i in $(seq 1 30); do
-    if sudo podman exec "${CONTAINER_NAME}" vtysh -c "show ip bgp summary" 2>&1 | grep -qv "bgpd is not running"; then
+    if sudo podman exec "${CONTAINER_NAME}" vtysh -c "show version" >/dev/null 2>&1 &&
+       ! sudo podman exec "${CONTAINER_NAME}" vtysh -c "show ip bgp summary" 2>&1 | grep -q "bgpd is not running"; then
       return 0
     fi
     sleep 1
   done
   return 1
+}
+
+load_integrated_config() {
+  echo "Loading /etc/frr/frr.conf into running daemons..."
+  sudo podman exec "${CONTAINER_NAME}" vtysh -b -f /etc/frr/frr.conf
+}
+
+verify_bgp_configured() {
+  local out
+  out=$(sudo podman exec "${CONTAINER_NAME}" vtysh -c "show ip bgp summary" 2>&1)
+  if echo "${out}" | grep -qE "bgpd is not running|BGP instance not found"; then
+    echo "${out}"
+    return 1
+  fi
+  echo "${out}"
+  return 0
 }
 
 prepare_config
@@ -78,10 +95,20 @@ if ! sudo podman ps --filter "name=${CONTAINER_NAME}" --format "{{.State}}" | gr
   exit 1
 fi
 
-if ! wait_for_bgpd; then
-  echo "bgpd did not start."
+if ! wait_for_daemons; then
+  echo "FRR daemons did not become ready."
   show_diagnostics
   exit 1
 fi
 
-sudo podman exec "${CONTAINER_NAME}" vtysh -c "show ip bgp summary"
+if ! load_integrated_config; then
+  echo "Failed to load integrated BGP configuration."
+  show_diagnostics
+  exit 1
+fi
+
+if ! verify_bgp_configured; then
+  echo "BGP configuration was not applied."
+  show_diagnostics
+  exit 1
+fi
