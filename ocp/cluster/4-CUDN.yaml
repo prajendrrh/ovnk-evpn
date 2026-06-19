@@ -1,0 +1,24 @@
+apiVersion: k8s.ovn.org/v1
+kind: ClusterUserDefinedNetwork
+metadata:
+  labels:
+    advertise: "true"
+  name: finance
+spec:
+  namespaceSelector:
+    matchLabels:
+      network: finance
+  network:
+    layer2:
+      role: Primary
+      subnets:
+        - 22.100.0.0/16
+      ipam:
+        mode: Enabled
+        lifecycle: Persistent
+    topology: Layer2
+    transport: EVPN
+    evpn:
+      vtep: evpn-vtep
+      macVRF:
+        vni: 100

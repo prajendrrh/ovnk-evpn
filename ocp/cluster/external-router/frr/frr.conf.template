@@ -1,0 +1,41 @@
+hostname bgpd-external
+log stdout debugging
+log file /var/log/frr/frr.log debugging
+log timestamp precision 3
+frr defaults traditional
+!
+debug bgp updates
+debug bgp events
+debug bgp evpn
+debug bgp nht detail
+debug zebra vxlan
+debug zebra kernel
+!
+router bgp ${BGP_ASN}
+ bgp router-id ${BASTION_IP}
+ no bgp default ipv4-unicast
+
+ neighbor ${WORKER1_IP} remote-as ${BGP_ASN}
+ neighbor ${WORKER2_IP} remote-as ${BGP_ASN}
+
+ neighbor ${WORKER1_IP} allowas-in origin
+ neighbor ${WORKER2_IP} allowas-in origin
+
+ address-family ipv4 unicast
+  neighbor ${WORKER1_IP} activate
+  neighbor ${WORKER1_IP} next-hop-self
+  neighbor ${WORKER2_IP} activate
+  neighbor ${WORKER2_IP} next-hop-self
+  redistribute static
+  redistribute connected
+ exit-address-family
+
+ address-family l2vpn evpn
+  neighbor ${WORKER1_IP} activate
+  neighbor ${WORKER2_IP} activate
+  advertise-all-vni
+  advertise-svi-ip
+  advertise-gateway-macip
+ exit-address-family
+!
+end

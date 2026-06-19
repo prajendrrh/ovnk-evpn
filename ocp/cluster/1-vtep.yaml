@@ -1,0 +1,9 @@
+# IPs: see ../vars.env (UNDERLAY_CIDR)
+apiVersion: k8s.ovn.org/v1
+kind: VTEP
+metadata:
+  name: evpn-vtep
+spec:
+  cidrs:
+    - 192.168.61.0/24
+  mode: Unmanaged
