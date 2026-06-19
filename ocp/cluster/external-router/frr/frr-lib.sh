@@ -41,8 +41,8 @@ configure terminal
 frr defaults traditional
 log stdout debugging
 log file /var/log/frr/frr.log debugging
-interface ${BRIDGE_DEV}
- ip address ${CUDN_GATEWAY}
+interface ${VXLAN_DEV}
+ evpn vni ${VNI}
 exit
 !
 router bgp ${BGP_ASN}
